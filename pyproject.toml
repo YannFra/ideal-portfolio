@@ -2,7 +2,7 @@
 name = "ideal-portfolio"
 version = "0.1.0"
 description = ""
-authors = ["YannFrab <yfrab@hotmail.fr>"]
+authors = ["SomeOne"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -10,6 +10,9 @@ python = "^3.12"
 pandas = "^2.2.1"
 numpy = "^1.26.4"
 pre-commit = "^3.6.2"
+yfinance = "^0.2.37"
+argparse = "^1.4.0"
+currencyconverter = "^0.17.22"
 
 
 [build-system]
