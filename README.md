@@ -6,6 +6,13 @@ This project aims at testing a portfolio strategy in hope of finding the ideal o
 
 ## How does it Work? - a Simple Example
 
+> [!NOTE]
+> This repo uses [Poetry](https://python-poetry.org/) to manage dependencies. Once you have Poetry installed, run the following command to install dependencies:
+> ```shell
+> poetry install
+> ```
+> And you are good to go!
+
 We propose a simple example to test the code and see its capabilities. Simply run the following command line:
 ```
 poetry run python portfolio.py
