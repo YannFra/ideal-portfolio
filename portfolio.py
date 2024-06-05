@@ -1,9 +1,9 @@
 import pandas as pd
-from utils.load_positions import load_portfolio
 from utils.assets_breakdown import provide_breakdown_existing_assets
 from utils.orders import get_list_of_orders
 from utils.current_asset_value import access_current_asset_value
 import argparse
+from utils.format_ideal_portfolio import format_ideal_portfolio
 
 
 # External inputs
@@ -15,9 +15,7 @@ parser.add_argument(
     default=0,
 )
 parser.add_argument("--currency", type=str, help="Currency of reference", default="USD")
-parser.add_argument(
-    "--no-example", default=False, action=argparse.BooleanOptionalAction
-)
+parser.add_argument("--no-example", default=False, action="store_true")
 args = parser.parse_args()
 
 if args.no_example:
@@ -31,8 +29,9 @@ elif args.investment < 0.0:
     print(f"Amount of withdrawn money from the portfolio: {args.investment}")
 
 # Load the portfolio and its strategy
-portfolio_structure, portfolio_breakdown = load_portfolio(path_portfolio)
-access_current_asset_value(portfolio_breakdown, args.currency)
+portfolio_structure = pd.read_csv(path_portfolio + "_ideal_portfolio.csv")
+format_ideal_portfolio(portfolio_structure)
+access_current_asset_value(portfolio_structure, args.currency)
 
 # Load the purchase history to know the existing portfolio
 purchase_history = pd.read_csv(path_portfolio + "_history.csv")
@@ -43,4 +42,4 @@ total_invested = assets_breakdown["position_X"].sum()
 print("Portfolio total value:", total_invested, args.currency, "\n")
 
 # Get the list of orders to be made to rebalance the portfolio
-get_list_of_orders(assets_breakdown, portfolio_breakdown)
+get_list_of_orders(assets_breakdown, portfolio_structure, args.currency)

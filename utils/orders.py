@@ -2,7 +2,7 @@ import pandas as pd
 
 
 def get_list_of_orders(
-    assets_breakdown: pd.DataFrame, portfolio_breakdown: pd.DataFrame
+    assets_breakdown: pd.DataFrame, portfolio_breakdown: pd.DataFrame, currency: str
 ):
     # Merge the two dataframes
     merged_df = assets_breakdown.merge(
@@ -32,9 +32,9 @@ def get_list_of_orders(
     )
     order.fillna(0.0, inplace=True)
     order["difference"] = order["p_desired"] - order["p_real"]
-    order["order_in_X"] = order["difference"] * total_invested
+    order[f"order_in_{currency}"] = order["difference"] * total_invested
     order["order_in_shares"] = (
-        order["order_in_X"]
+        order[f"order_in_{currency}"]
         / order["exchange_rate_desired"]
         / order["unit_price_desired"]
     )
@@ -47,8 +47,11 @@ def get_list_of_orders(
                 "yf_name",
                 "p_desired",
                 "p_real",
-                "order_in_X",
+                f"order_in_{currency}",
                 "order_in_shares",
             ]
-        ].sort_values(by="order_in_X", ascending=False, key=abs),
+        ]
+        .sort_values(by=f"order_in_{currency}", ascending=False, key=abs)
+        .round(1),
     )
+    print("previous values rounded at 0.1")

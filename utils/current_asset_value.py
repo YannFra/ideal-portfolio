@@ -7,8 +7,8 @@ from currency_converter import CurrencyConverter
 def _get_last_quote(ticker: str) -> float:
     """Finds the latest ticker price with Yahoo Finance"""
 
-    # Return 1.0 as the last quote of 1X is 1X where X is the currency
-    if ticker == "CASH":
+    # Return 1.0 if it is cash, i.e. if "--"
+    if ticker == "--":
         return 1.0
 
     # Otherwise, retrieve the last available closing price of the ticker

@@ -1,0 +1,13 @@
+﻿Tag,Product,yf_name,Unit,,L1,p_L1,,L2 ,p_L2
+NVDA,NVIDIA,NVDA,USD,,Equity,35,,US,30
+BABA,Alibaba,BABA,USD,,Equity,,,China,70
+,,,,,,,,,
+TLT,20+ Year Treasury Bond ETF,TLT,USD,,Debt,20,,,
+,,,,,,,,,
+USD,Cash in USD,--,USD,,Cash,20,,,
+,,,,,,,,,
+USO,United States Oil Fund,USO,USD,,Commodities,10,,,
+,,,,,,,,,
+BTC,Bitcoin,BTC-USD,USD,,Alternatives,10,,,
+,,,,,,,,,
+META,"Meta Platforms, Inc.",META,USD,,Others,5,,,

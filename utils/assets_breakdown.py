@@ -33,8 +33,10 @@ def provide_breakdown_existing_assets(
     )
     assets_breakdown["p_overall"] = (
         assets_breakdown["position_X"] / assets_breakdown["position_X"].sum()
-    )
+    ) * 100
 
+    assets_breakdown = assets_breakdown.sort_values(by="p_overall", ascending=False)
+    assets_breakdown.reset_index(drop=True, inplace=True)
     print(
         "Breakdown of each asset in the existing portfolio:\n",
         assets_breakdown[["yf_name", "position_X", "p_overall"]],
