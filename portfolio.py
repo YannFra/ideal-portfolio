@@ -38,7 +38,7 @@ purchase_history = pd.read_csv(path_portfolio + "_history.csv")
 assets_breakdown = provide_breakdown_existing_assets(
     purchase_history, args.investment, args.currency
 )
-total_invested = assets_breakdown["position_X"].sum()
+total_invested = assets_breakdown[f"position_in_{args.currency}"].sum()
 print("Portfolio total value:", total_invested, args.currency, "\n")
 
 # Get the list of orders to be made to rebalance the portfolio

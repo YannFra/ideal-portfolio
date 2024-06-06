@@ -12,7 +12,7 @@ def get_list_of_orders(
     merged_df.reset_index(drop=True, inplace=True)
 
     # Select the desired columns to create the df order
-    total_invested = assets_breakdown["position_X"].sum()
+    total_invested = assets_breakdown[f"position_in_{currency}"].sum()
     order = merged_df[
         [
             "Product",
@@ -32,7 +32,7 @@ def get_list_of_orders(
     )
     order.fillna(0.0, inplace=True)
     order["difference"] = order["p_desired"] - order["p_real"]
-    order[f"order_in_{currency}"] = order["difference"] * total_invested
+    order[f"order_in_{currency}"] = order["difference"] * total_invested / 100
     order["order_in_shares"] = (
         order[f"order_in_{currency}"]
         / order["exchange_rate_desired"]
@@ -52,6 +52,6 @@ def get_list_of_orders(
             ]
         ]
         .sort_values(by=f"order_in_{currency}", ascending=False, key=abs)
-        .round(1),
+        .round(3),
     )
     print("previous values rounded at 0.1")
