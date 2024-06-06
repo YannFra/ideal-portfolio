@@ -1,9 +1,9 @@
 import pandas as pd
+import argparse
 from utils.assets_breakdown import provide_breakdown_existing_assets
 from utils.orders import get_list_of_orders
 from utils.current_asset_value import access_current_asset_value
-import argparse
-from utils.format_ideal_portfolio import format_ideal_portfolio
+from utils.format_ideal_portfolio import format_ideal_portfolio, retrieve_tree_structure
 
 
 # External inputs
@@ -31,6 +31,8 @@ elif args.investment < 0.0:
 # Load the portfolio and its strategy
 portfolio_structure = pd.read_csv(path_portfolio + "_ideal_portfolio.csv")
 format_ideal_portfolio(portfolio_structure)
+retrieve_tree_structure(portfolio_structure)
+
 access_current_asset_value(portfolio_structure, args.currency)
 
 # Load the purchase history to know the existing portfolio
