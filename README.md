@@ -24,14 +24,7 @@ The file `_history.csv` is also needed for the repository to work as intended. I
 
 ## How to Run the Code for your Own Portfolio?
 
-## Roadmap - Desired Features
-
-- [x] Based on `_history.csv`, calculate the value of the existing portfolio positions.
-- [x] List the orders to pass for the portfolio described in `_history.csv` to match the one in `_categories.csv`.
-- [x] Allow the addition/withdrawal of a sum of cash to/from the portfolio when listing the orders.
-- [ ] Account for positions in `_history.csv` not in `_categories.csv`. (sell them?)
-- [ ] Provide an historical evolution of the portfolio: value, individual performances of the different components since they have been added.
-- [ ] Account for inflation.
-- [ ] Track the overall portfolio value in different currencies.
-- [ ] Create a mobile app to have all of this automated and easily tracked.
-- [ ] Include triggering methods, when there are sudden change in the market for the positions of the portfolio.
+Simply create your own files in `your_portfolio` and run
+```
+poetry run python portfolio.py --no-example
+```
