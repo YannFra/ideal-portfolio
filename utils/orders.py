@@ -1,4 +1,5 @@
 import pandas as pd
+from rich import print
 
 
 def get_list_of_orders(
@@ -52,6 +53,7 @@ def get_list_of_orders(
             ]
         ]
         .sort_values(by=f"order_in_{currency}", ascending=False, key=abs)
-        .round(3),
+        .round(3)
+        .reset_index(drop=True),
+        "\n",
     )
-    print("previous values rounded at 0.1")

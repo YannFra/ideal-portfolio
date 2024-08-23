@@ -12,8 +12,10 @@ numpy = "^1.26.4"
 pre-commit = "^3.6.2"
 yfinance = "^0.2.37"
 argparse = "^1.4.0"
-currencyconverter = "^0.17.22"
 treelib = "^1.7.0"
+matplotlib = "^3.9.1"
+seaborn = "^0.13.2"
+rich = "^13.7.1"
 
 
 [build-system]

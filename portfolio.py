@@ -1,9 +1,11 @@
 import pandas as pd
 import argparse
-from utils.assets_breakdown import provide_breakdown_existing_assets
+from utils.current_asset_value import provide_breakdown_existing_assets
 from utils.orders import get_list_of_orders
 from utils.current_asset_value import access_current_asset_value
-from utils.format_ideal_portfolio import format_ideal_portfolio, retrieve_tree_structure
+from utils.format_ideal_portfolio import format_ideal_portfolio
+from utils.plot_evolution import plot_evolution_value
+from rich import print
 
 
 # External inputs
@@ -18,21 +20,23 @@ parser.add_argument("--currency", type=str, help="Currency of reference", defaul
 parser.add_argument("--no-example", default=False, action="store_true")
 args = parser.parse_args()
 
+# Path of the structure and purchase history
 if args.no_example:
     path_portfolio = "your_portfolio/"
 else:
     path_portfolio = "example_portfolio/"
 
+# Log regarding the change in amount of invested cash
 if args.investment > 0.0:
-    print(f"Amount of added money to the portfolio: {args.investment}")
+    print(f"{args.investment}{args.currency} added to the portfolio")
 elif args.investment < 0.0:
-    print(f"Amount of withdrawn money from the portfolio: {args.investment}")
+    print(f"{args.investment}{args.currency} removed from the portfolio")
 
 # Load the portfolio and its strategy
 portfolio_structure = pd.read_csv(path_portfolio + "_ideal_portfolio.csv")
-format_ideal_portfolio(portfolio_structure)
-retrieve_tree_structure(portfolio_structure)
 
+# Summarize the structure of the portfolio
+format_ideal_portfolio(portfolio_structure)
 access_current_asset_value(portfolio_structure, args.currency)
 
 # Load the purchase history to know the existing portfolio
@@ -40,8 +44,9 @@ purchase_history = pd.read_csv(path_portfolio + "_history.csv")
 assets_breakdown = provide_breakdown_existing_assets(
     purchase_history, args.investment, args.currency
 )
-total_invested = assets_breakdown[f"position_in_{args.currency}"].sum()
-print("Portfolio total value:", total_invested, args.currency, "\n")
 
 # Get the list of orders to be made to rebalance the portfolio
 get_list_of_orders(assets_breakdown, portfolio_structure, args.currency)
+
+
+plot_evolution_value(purchase_history.copy(), args.currency)
