@@ -6,9 +6,7 @@ from utils.current_asset_value import access_current_asset_value
 from utils.format_ideal_portfolio import format_ideal_portfolio
 from utils.plot_evolution import plot_evolution_value
 from rich import print
-import yfinance as yf
 # yf.enable_debug_mode()
-
 
 
 # External inputs
@@ -21,7 +19,7 @@ parser.add_argument(
 )
 parser.add_argument("--currency", type=str, help="Currency of reference", default="USD")
 parser.add_argument("--no-example", default=False, action="store_true")
-parser.add_argument("--verbose", default =False, action ="store_true")
+parser.add_argument("--verbose", default=False, action="store_true")
 args = parser.parse_args()
 
 # Path of the structure and purchase history
@@ -53,4 +51,4 @@ assets_breakdown = provide_breakdown_existing_assets(
 get_list_of_orders(assets_breakdown, portfolio_structure, args.currency)
 
 
-# plot_evolution_value(purchase_history.copy(), args.currency, verbose=args.verbose)
+plot_evolution_value(purchase_history.copy(), args.currency, verbose=args.verbose)
