@@ -109,7 +109,7 @@ def retrieve_tree_structure(portfolio_csv: pd.DataFrame) -> pd.DataFrame:
             row_tag[f"L{n_levels}"].iloc[0], row_tag[f"p_L{n_levels}"].iloc[0]
         )
 
-        final_tag = f"{tag} - p={row_tag['p_overall'].iloc[0]}"
+        final_tag = f"{tag} - p={row_tag['p_overall'].iloc[0]:.2f}"
         tree.create_node(final_tag, tag, parent=parent_name)
 
     print("Structure of the theoretical portfolio:")

@@ -10,7 +10,7 @@ from .current_asset_value import (
     exchange_rate,
     invested_cash,
     provide_breakdown_existing_assets,
-    history_ticker,
+    load_data,
 )
 
 
@@ -27,7 +27,7 @@ def _augment_timestamp(df: pd.DataFrame, first_date: pd.Timestamp = None):
     return df
 
 
-def plot_evolution_value(purchase_history: pd.DataFrame, ref_currency: str):
+def plot_evolution_value(purchase_history: pd.DataFrame, ref_currency: str, verbose: bool = True):
     # Be sure that dates can be used (TimesTamp format)
     purchase_history["Date"] = pd.to_datetime(
         purchase_history["Date"], format="%d/%m/%y"
@@ -35,12 +35,14 @@ def plot_evolution_value(purchase_history: pd.DataFrame, ref_currency: str):
 
     # Get the amount of cash invested PER POSITION
     purchase_history["unit_price"] = purchase_history.apply(
-        lambda x: get_last_quote(x["yf_name"], x["Date"]), axis=1
+        lambda x: get_last_quote(x["yf_name"], x["Date"], verbose=verbose), axis=1
     )
     purchase_history["exchange_rate"] = purchase_history.apply(
-        lambda x: exchange_rate(x["Unit"], ref_currency, x["Date"]), axis=1
+        lambda x: exchange_rate(x["Unit"], ref_currency, x["Date"], verbose=verbose), axis=1
     )
     purchase_history["invested_cash"] = purchase_history.apply(invested_cash, axis=1)
+
+
 
     # Get the amount of cash invested PER DATE
     # Add inputs in df for each Monday since the beginning of the strategy
@@ -84,7 +86,7 @@ def plot_evolution_value(purchase_history: pd.DataFrame, ref_currency: str):
         if tag == "--":
             histories[tag]["position_value"] = histories[tag]["Quantity"]
         else:
-            history_tag = history_ticker(tag, purchase_history["Date"].min())
+            history_tag = load_data(tag, purchase_history["Date"].min(), verbose=verbose)
             histories[tag] = histories[tag].merge(
                 history_tag[["Date", "Close"]], on="Date", how="left"
             )
@@ -95,8 +97,8 @@ def plot_evolution_value(purchase_history: pd.DataFrame, ref_currency: str):
 
         unit = purchase_history[purchase_history["yf_name"] == tag]["Unit"].iloc[0]
         if unit != ref_currency:
-            history_unit = history_ticker(
-                f"{unit}{ref_currency}=x", purchase_history["Date"].min()
+            history_unit = load_data(
+                f"{unit}{ref_currency}=x", purchase_history["Date"].min(), verbose=verbose
             )[["Date", "Close"]]
             histories[tag] = histories[tag].merge(
                 history_unit[["Date", "Close"]], on="Date", how="left"

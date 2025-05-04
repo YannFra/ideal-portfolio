@@ -6,6 +6,9 @@ from utils.current_asset_value import access_current_asset_value
 from utils.format_ideal_portfolio import format_ideal_portfolio
 from utils.plot_evolution import plot_evolution_value
 from rich import print
+import yfinance as yf
+# yf.enable_debug_mode()
+
 
 
 # External inputs
@@ -18,6 +21,7 @@ parser.add_argument(
 )
 parser.add_argument("--currency", type=str, help="Currency of reference", default="USD")
 parser.add_argument("--no-example", default=False, action="store_true")
+parser.add_argument("--verbose", default =False, action ="store_true")
 args = parser.parse_args()
 
 # Path of the structure and purchase history
@@ -37,16 +41,16 @@ portfolio_structure = pd.read_csv(path_portfolio + "_ideal_portfolio.csv")
 
 # Summarize the structure of the portfolio
 format_ideal_portfolio(portfolio_structure)
-access_current_asset_value(portfolio_structure, args.currency)
+access_current_asset_value(portfolio_structure, args.currency, verbose=args.verbose)
 
 # Load the purchase history to know the existing portfolio
 purchase_history = pd.read_csv(path_portfolio + "_history.csv")
 assets_breakdown = provide_breakdown_existing_assets(
-    purchase_history, args.investment, args.currency
+    purchase_history, args.investment, args.currency, verbose=args.verbose
 )
 
 # Get the list of orders to be made to rebalance the portfolio
 get_list_of_orders(assets_breakdown, portfolio_structure, args.currency)
 
 
-plot_evolution_value(purchase_history.copy(), args.currency)
+# plot_evolution_value(purchase_history.copy(), args.currency, verbose=args.verbose)

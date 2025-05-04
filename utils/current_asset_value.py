@@ -3,9 +3,33 @@ import pandas as pd
 
 
 from rich import print
+import os
 
 
-def history_ticker(ticker: str, date: pd.Timestamp) -> pd.DataFrame:
+def load_data(ticker: str, date: pd.Timestamp, verbose:bool=True) -> pd.DataFrame:
+
+    os.makedirs(os.path.join("data", ticker), exist_ok=True)
+
+    if date == None:
+        date = pd.Timestamp.today().normalize()
+
+    # Create the folder if it does not exist
+    ds_name = date.strftime("%Y-%m-%d")+ ".csv"
+    ds_path = os.path.join("data", ticker, ds_name)
+    if os.path.exists(ds_path):
+        if verbose:
+            print(f"File already exists: {ds_path}")
+        ticker_history = pd.read_csv(ds_path)
+        ticker_history["Date"] = pd.to_datetime(ticker_history["Date"])
+    else:
+        if verbose:
+            print(f"Created file: {ds_path}")
+        ticker_history = _history_ticker(ticker, date)
+        ticker_history.to_csv(ds_path, index=False)
+    return ticker_history 
+    
+
+def _history_ticker(ticker: str, date: pd.Timestamp) -> pd.DataFrame:
     """Get the df of the history of `ticker` from `date` to today"""
 
     try:
@@ -22,7 +46,7 @@ def history_ticker(ticker: str, date: pd.Timestamp) -> pd.DataFrame:
     return ticker_history
 
 
-def get_last_quote(ticker: str, date: pd.Timestamp = None) -> float:
+def get_last_quote(ticker: str, date: pd.Timestamp = None, verbose: bool = True) -> float:
     """Finds the latest `ticker` price with Yahoo Finance"""
 
     # Return 1.0 if it is cash, i.e. if "--"
@@ -31,17 +55,26 @@ def get_last_quote(ticker: str, date: pd.Timestamp = None) -> float:
 
     # Otherwise, create the ticker to retrieve the data
     # Return the last quote if no specific `date` is provided
-    if date is None or date == pd.Timestamp.today().normalize():
-        try:
-            ticker_yahoo = yf.Ticker(ticker)
-        except Exception as e:
-            raise Exception(f"Failed to retrieve data for ticker {ticker}: {e}")
-        ticker_history = ticker_yahoo.history()
-        quote = ticker_history.iloc[-1]["Close"]
-        return quote
+    # ticker_data = load_data(ticker, date)
+    # if date is None or date == pd.Timestamp.today().normalize():
+    #     try:
+    #         ticker_yahoo = yf.Ticker(ticker)
+    #     except Exception as e:
+    #         raise Exception(f"Failed to retrieve data for ticker {ticker}: {e}")
+    #     ticker_history = ticker_yahoo.history()
+    #     quote = ticker_history.iloc[-1]["Close"]
+    #     return quote
+    
+    
 
     # Get the quote for the closest date if a specific `date` is provided
-    ticker_history = history_ticker(ticker, date)
+    ticker_history = load_data(ticker, date, verbose = verbose)
+    if date is None or date == pd.Timestamp.today().normalize():
+        return ticker_history["Close"].iloc[-1]
+    
+    return ticker_history.loc[
+                ticker_history["Date"].sub(date).abs().idxmin(), "Close"
+            ]
 
     # Look up to two days before or after (week-end)
     for i in range(3):
@@ -60,14 +93,14 @@ def get_last_quote(ticker: str, date: pd.Timestamp = None) -> float:
     print("issue quote", ticker, date)
 
 
-def exchange_rate(x: str, ref_currency: str, date: pd.Timestamp = None) -> float:
+def exchange_rate(x: str, ref_currency: str, date: pd.Timestamp = None, verbose = True) -> float:
     """Find the latest available exchange rate between x and the reference currency"""
     # Do nothing if the asset currency is already the one of refernce
     # TODO: generalise beyond USD
     if x == ref_currency:
         return 1.0
 
-    return get_last_quote(f"{x}{ref_currency}=x", date)
+    return get_last_quote(f"{x}{ref_currency}=x", date, verbose=verbose)
 
 
 def invested_cash(x: pd.Series) -> float:
@@ -75,13 +108,14 @@ def invested_cash(x: pd.Series) -> float:
 
 
 def access_current_asset_value(
-    df: pd.DataFrame, ref_currency: str, date: pd.Timestamp = None
+    df: pd.DataFrame, ref_currency: str, date: pd.Timestamp = None, verbose: bool = True
 ):
     """Find the latest exchange rate and unit price for each asset in df"""
 
-    df["unit_price"] = df["yf_name"].apply(lambda x: get_last_quote(x, date))
+
+    df["unit_price"] = df["yf_name"].apply(lambda x: get_last_quote(x, date, verbose=verbose))
     df["exchange_rate"] = df["Unit"].apply(
-        lambda x: exchange_rate(x, ref_currency, date)
+        lambda x: exchange_rate(x, ref_currency, date, verbose=verbose)
     )
 
 
@@ -100,7 +134,7 @@ def provide_breakdown_existing_assets(
     assets_breakdown.reset_index(inplace=True)
 
     # Get the unit price of each asset and the exchange rate of its currency to `currency`
-    access_current_asset_value(assets_breakdown, ref_currency, date)
+    access_current_asset_value(assets_breakdown, ref_currency, date, verbose=verbose)
 
     # Add a line to account for the addition/withdrawal of cash
     if cash_influx > 0:
@@ -129,7 +163,7 @@ def provide_breakdown_existing_assets(
     if verbose:
         print(
             "Breakdown of each asset in the existing portfolio:\n",
-            assets_breakdown[["yf_name", f"position_in_{ref_currency}", "p_overall"]],
+            assets_breakdown[["yf_name", f"position_in_{ref_currency}", "p_overall", "Quantity"]],
         )
         total_invested = assets_breakdown[f"position_in_{ref_currency}"].sum()
         print("Portfolio total value:", total_invested, ref_currency, "\n")
