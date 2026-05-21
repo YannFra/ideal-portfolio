@@ -17,6 +17,7 @@ yfinance = "^0.2.58"
 rich = "^14.0.0"
 treelib = "^1.7.1"
 matplotlib = "^3.10.1"
+python-dotenv = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

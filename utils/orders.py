@@ -32,6 +32,7 @@ def get_list_of_orders(
         inplace=True,
     )
     order.fillna(0.0, inplace=True)
+    order = order[~((order["p_desired"] == 0) & (order["p_real"] == 0))]
     order["difference"] = order["p_desired"] - order["p_real"]
     order[f"order_in_{currency}"] = order["difference"] * total_invested / 100
     order["order_in_shares"] = (

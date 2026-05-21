@@ -3,10 +3,6 @@ from treelib import Tree
 
 from rich import print
 
-# TODO: Look for human errors when filling the csv
-# TODO: Return warning if the sum of the probabilities is not 100
-# TODO: Return warning if different probabilities are given to the same category
-
 
 def format_ideal_portfolio(portfolio_csv: pd.DataFrame) -> pd.DataFrame:
     # Remove empty rows and columns
@@ -28,7 +24,30 @@ def format_ideal_portfolio(portfolio_csv: pd.DataFrame) -> pd.DataFrame:
         inplace=True,
     )
 
-    # TODO: Force every category to have its sum of probabilties equal to 1
+    tolerance = 0.1
+    for i, level in enumerate(levels):
+        parents = levels[:i]
+        p_col = f"p_{level}"
+        relevant = portfolio_csv[portfolio_csv[level].notna()]
+
+        if not parents:
+            level_sum = relevant[[level, p_col]].drop_duplicates()[p_col].sum()
+            if abs(level_sum - 100) > tolerance:
+                raise ValueError(
+                    f"{level} probabilities sum to {level_sum:.1f}%, expected 100% (tolerance: {tolerance}%)"
+                )
+        else:
+            for group_key, group in relevant.groupby(parents):
+                level_sum = group[[level, p_col]].drop_duplicates()[p_col].sum()
+                if abs(level_sum - 100) > tolerance:
+                    if not isinstance(group_key, tuple):
+                        group_key = (group_key,)
+                    parent_desc = ", ".join(
+                        f"{p}={v}" for p, v in zip(parents, group_key)
+                    )
+                    raise ValueError(
+                        f"{level} probabilities under {parent_desc} sum to {level_sum:.1f}%, expected 100% (tolerance: {tolerance}%)"
+                    )
 
     # Find path and leaf probabilities
     portfolio_csv["tree_path"] = ""
