@@ -2,9 +2,6 @@ import yfinance as yf
 import pandas as pd
 
 
-from rich import print
-
-
 def history_ticker(ticker: str, date: pd.Timestamp = None) -> pd.DataFrame:
     """Get the df of the history of `ticker` from `date` to today"""
 
@@ -115,22 +112,5 @@ def provide_breakdown_existing_assets(
 
     assets_breakdown = assets_breakdown.sort_values(by="p_overall", ascending=False)
     assets_breakdown.reset_index(drop=True, inplace=True)
-
-    print(
-        "Breakdown of each asset in the existing portfolio:\n",
-        assets_breakdown.loc[
-            assets_breakdown["p_overall"] != 0,
-            ["yf_name", f"position_in_{ref_currency}", "p_overall", "Quantity"],
-        ],
-    )
-    total_invested = assets_breakdown[f"position_in_{ref_currency}"].sum()
-    extra_currencies = [c for c in ["USD", "SGD", "EUR"] if c != ref_currency]
-    conversions = {
-        c: total_invested * exchange_rate(ref_currency, c) for c in extra_currencies
-    }
-    conversion_str = "  |  ".join(f"{v:.2f} {c}" for c, v in conversions.items())
-    print(
-        f"Portfolio total value: {total_invested:.2f} {ref_currency}  |  {conversion_str}\n"
-    )
 
     return assets_breakdown

@@ -1,8 +1,11 @@
 import pandas as pd
 import argparse
-from utils.current_asset_value import provide_breakdown_existing_assets
+from utils.current_asset_value import (
+    provide_breakdown_existing_assets,
+    access_current_asset_value,
+    exchange_rate,
+)
 from utils.orders import get_list_of_orders
-from utils.current_asset_value import access_current_asset_value
 from utils.format_ideal_portfolio import format_ideal_portfolio
 from utils.plot_evolution import (
     plot_evolution_value,
@@ -41,13 +44,29 @@ elif args.investment < 0.0:
 portfolio_structure = pd.read_csv(path_portfolio + "_ideal_portfolio.csv")
 
 # Summarize the structure of the portfolio
-format_ideal_portfolio(portfolio_structure)
+print(format_ideal_portfolio(portfolio_structure))
 access_current_asset_value(portfolio_structure, args.currency)
 
 # Load the purchase history to know the existing portfolio
 purchase_history = pd.read_csv(path_portfolio + "_history.csv")
 assets_breakdown = provide_breakdown_existing_assets(
     purchase_history, args.investment, args.currency
+)
+portfolio_value = assets_breakdown[f"position_in_{args.currency}"].sum()
+extra_currencies = [c for c in ["USD", "SGD", "EUR"] if c != args.currency]
+conversions = {
+    c: portfolio_value * exchange_rate(args.currency, c) for c in extra_currencies
+}
+conversion_str = "  |  ".join(f"{v:.2f} {c}" for c, v in conversions.items())
+print(
+    "Breakdown of each asset in the existing portfolio:\n",
+    assets_breakdown.loc[
+        assets_breakdown["p_overall"] != 0,
+        ["yf_name", f"position_in_{args.currency}", "p_overall", "Quantity"],
+    ],
+)
+print(
+    f"Portfolio total value: {portfolio_value:.2f} {args.currency}  |  {conversion_str}\n"
 )
 
 # Load stock splits
@@ -58,14 +77,14 @@ splits["Date"] = pd.to_datetime(splits["Date"], dayfirst=True)
 total_invested = compute_total_invested(
     purchase_history.copy(), args.currency, splits=splits
 )
-portfolio_value = assets_breakdown[f"position_in_{args.currency}"].sum()
 pct_diff = (portfolio_value - total_invested) / total_invested * 100
 print(
     f"Total invested cash: {total_invested:.2f} {args.currency}  |  {pct_diff:+.2f}%\n"
 )
 
 # Get the list of orders to be made to rebalance the portfolio
-get_list_of_orders(assets_breakdown, portfolio_structure, args.currency)
+orders = get_list_of_orders(assets_breakdown, portfolio_structure, args.currency)
+print("Orders to pass to rebalance the existing portfolio:\n", orders, "\n")
 
 # Export history enriched with order value and portfolio value at each order
 export_history_with_values(

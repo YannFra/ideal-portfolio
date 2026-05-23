@@ -1,10 +1,9 @@
 import pandas as pd
-from rich import print
 
 
 def get_list_of_orders(
     assets_breakdown: pd.DataFrame, portfolio_breakdown: pd.DataFrame, currency: str
-):
+) -> pd.DataFrame:
     # Merge the two dataframes
     merged_df = assets_breakdown.merge(
         portfolio_breakdown, on="yf_name", how="outer", suffixes=("_real", "_desired")
@@ -41,8 +40,7 @@ def get_list_of_orders(
         / order["unit_price_desired"]
     )
 
-    print(
-        "Orders to pass to rebalance the existing portfolio:\n",
+    return (
         order[
             [
                 "Product",
@@ -55,6 +53,5 @@ def get_list_of_orders(
         ]
         .sort_values(by=f"order_in_{currency}", ascending=False, key=abs)
         .round(3)
-        .reset_index(drop=True),
-        "\n",
+        .reset_index(drop=True)
     )

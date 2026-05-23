@@ -1,8 +1,6 @@
 import pandas as pd
 from treelib import Tree
 
-from rich import print
-
 
 def format_ideal_portfolio(portfolio_csv: pd.DataFrame) -> pd.DataFrame:
     # Remove empty rows and columns
@@ -72,10 +70,7 @@ def format_ideal_portfolio(portfolio_csv: pd.DataFrame) -> pd.DataFrame:
     portfolio_csv = portfolio_csv.sort_values(by="p_overall", ascending=False)
     portfolio_csv.reset_index(drop=True, inplace=True)
 
-    # Return the breakdown of the portfolio
-    retrieve_tree_structure(portfolio_csv)
-
-    return
+    return retrieve_tree_structure(portfolio_csv)
 
 
 def _name_node(category: str, percentage: float):
@@ -131,7 +126,4 @@ def retrieve_tree_structure(portfolio_csv: pd.DataFrame) -> pd.DataFrame:
         final_tag = f"{tag} - p={row_tag['p_overall'].iloc[0]:.2f}"
         tree.create_node(final_tag, tag, parent=parent_name)
 
-    print("Structure of the theoretical portfolio:")
-    print(tree.show(stdout=False))
-
-    return tree
+    return "Structure of the theoretical portfolio:\n" + tree.show(stdout=False)
