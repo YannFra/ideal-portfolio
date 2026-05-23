@@ -3,3 +3,6 @@
 your_portfolio/*.csv
 poetry.lock
 data/*
+.env
+*_with_values.csv
+.claude/

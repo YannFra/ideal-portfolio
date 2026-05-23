@@ -6,13 +6,6 @@ This project aims at testing a portfolio strategy in hope of finding the ideal o
 
 ## How does it Work? - a Simple Example
 
-> [!NOTE]
-> This repo uses [Poetry](https://python-poetry.org/) to manage dependencies. Once you have Poetry installed, run the following command to install dependencies:
-> ```shell
-> poetry install
-> ```
-> And you are good to go!
-
 We propose a simple example to test the code and see its capabilities. Simply run the following command line:
 ```
 poetry run python portfolio.py
@@ -28,3 +21,13 @@ Simply create your own files in `your_portfolio` and run
 ```
 poetry run python portfolio.py --no-example
 ```
+
+
+## Notes
+
+
+### Shares split
+
+This project relies on the library `yfinance`. Any issue in the data obtained through the library will also impact the results returned by the code in this project. In particular, we notice that shares split might not be recorded. For example, if considering the ticker `1364.T`, shares have been split in 10 on April 7, 2025. However, the `.split` feature of yfinance does not contain this information.
+
+To handle this issue, one needs to manually modify its history to multiply by the split value the old number of shares. Also, the file _split.csv needs to be manually inputed to add `07/05/2025,1364.T,10`. When computing the invested cash and the portfolio value at previous dates, the code will divide the number of shares by the value in this file.
