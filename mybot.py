@@ -1,6 +1,7 @@
 import logging
 import os
 import asyncio
+from datetime import time
 import pandas as pd
 from dotenv import load_dotenv
 from telegram import Update
@@ -228,6 +229,48 @@ async def history(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"<b>Last 5 entries</b>\n{rows}", parse_mode="HTML")
 
 
+async def daily_portfolio(context: ContextTypes.DEFAULT_TYPE):
+    def _compute():
+        _, purchase_history, assets_breakdown, splits = _load_data()
+        pv = assets_breakdown[f"position_in_{CURRENCY}"].sum()
+        extra = [c for c in ["USD", "SGD", "EUR"] if c != CURRENCY]
+        conversions = {c: pv * exchange_rate(CURRENCY, c) for c in extra}
+        conversion_str = "  |  ".join(f"{int(v)} {c}" for c, v in conversions.items())
+        total_invested = compute_total_invested(
+            purchase_history.copy(), CURRENCY, splits=splits
+        )
+        pct_diff = (pv - total_invested) / total_invested * 100
+        return pv, conversion_str, total_invested, pct_diff
+
+    pv, conversion_str, total_invested, pct_diff = await asyncio.to_thread(_compute)
+    await context.bot.send_message(
+        chat_id=MY_ID,
+        text=(
+            f"<b>Weekly portfolio</b>\n"
+            f"<b>Total value:</b> {int(pv)} {CURRENCY}  |  {conversion_str}\n"
+            f"<b>Invested:</b> {int(total_invested)} {CURRENCY}  |  {pct_diff:+.2f}%"
+        ),
+        parse_mode="HTML",
+    )
+
+
+async def daily_orders(context: ContextTypes.DEFAULT_TYPE):
+    def _compute():
+        portfolio_structure, _, assets_breakdown, _ = _load_data()
+        return get_list_of_orders(assets_breakdown, portfolio_structure, CURRENCY)
+
+    orders_df = await asyncio.to_thread(_compute)
+    rows = "\n".join(
+        f"{row['yf_name']}: {int(row['order_in_shares']):+} shares, {int(row[f'order_in_{CURRENCY}']):+} {CURRENCY} ({row['p_real']:.2f}% → {row['p_desired']:.2f}%)"
+        for _, row in orders_df.iterrows()
+    )
+    await context.bot.send_message(
+        chat_id=MY_ID,
+        text=f"<b>Daily orders</b>\n{rows}",
+        parse_mode="HTML",
+    )
+
+
 @owner_only
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"You said: {update.message.text}")
@@ -246,6 +289,12 @@ def main():
     app.add_handler(CommandHandler("add", add))
     app.add_handler(CommandHandler("history", history))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+    app.job_queue.run_daily(
+        daily_orders, time=time(10, 0), days=(0, 1, 2, 3, 4)
+    )  # 6pm SGT = 10:00 UTC, weekdays only
+    app.job_queue.run_daily(
+        daily_portfolio, time=time(10, 0), days=(6,)
+    )  # 6pm SGT = 10:00 UTC, Sunday only
     print("Bot is running. Press Ctrl+C to stop.")
     app.run_polling()
 
