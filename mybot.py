@@ -22,6 +22,7 @@ from utils.orders import get_list_of_orders
 from utils.format_ideal_portfolio import format_ideal_portfolio
 from utils.plot_evolution import compute_total_invested
 
+
 load_dotenv()
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 MY_ID = int(os.environ["MY_ID"])
