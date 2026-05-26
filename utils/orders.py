@@ -22,8 +22,6 @@ def get_list_of_orders(
             "p_overall_desired",
             "exchange_rate_desired",
             "unit_price_desired",
-            "exchange_rate_real",
-            "unit_price_real",
         ]
     ].copy()
     order.rename(
@@ -33,23 +31,15 @@ def get_list_of_orders(
         },
         inplace=True,
     )
-    order.fillna(0.0, inplace=True)
+    order[["p_real", "p_desired"]] = order[["p_real", "p_desired"]].fillna(0.0)
     order = order[~((order["p_desired"] == 0) & (order["p_real"] == 0))]
     order["difference"] = order["p_desired"] - order["p_real"]
     order[f"order_in_{currency}"] = order["difference"] * total_invested / 100
-
-    # For positions not in the ideal portfolio, fall back to the real price
-    unit_price = order["unit_price_desired"].where(
-        order["unit_price_desired"] != 0, order["unit_price_real"]
-    )
-    exchange_rate = order["exchange_rate_desired"].where(
-        order["exchange_rate_desired"] != 0, order["exchange_rate_real"]
-    )
     order["order_in_shares"] = (
         order[f"order_in_{currency}"]
-        / exchange_rate.replace(0, float("nan"))
-        / unit_price.replace(0, float("nan"))
-    ).fillna(0)
+        / order["exchange_rate_desired"]
+        / order["unit_price_desired"]
+    )
 
     return (
         order[
