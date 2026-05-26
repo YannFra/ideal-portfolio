@@ -38,18 +38,22 @@ def get_last_quote(ticker: str, date: pd.Timestamp = None) -> float:
 
     ticker_history = history_ticker(ticker, date)
     if date is None or date == pd.Timestamp.today().normalize():
-        return ticker_history["Close"].iloc[-1]
+        return ticker_history["Close"].dropna().iloc[-1]
 
     return ticker_history.loc[ticker_history["Date"].sub(date).abs().idxmin(), "Close"]
 
 
 def exchange_rate(x: str, ref_currency: str, date: pd.Timestamp = None) -> float:
-    """Find the latest available exchange rate between x and the reference currency"""
-    # TODO: generalise beyond USD
+    """Find the latest available exchange rate between x and the reference currency via USD."""
     if x == ref_currency:
         return 1.0
-
-    return get_last_quote(f"{x}{ref_currency}=x", date)
+    if x == "USD":
+        return get_last_quote(f"USD{ref_currency}=x", date)
+    if ref_currency == "USD":
+        return get_last_quote(f"{x}USD=x", date)
+    return get_last_quote(f"{x}USD=x", date) * get_last_quote(
+        f"USD{ref_currency}=x", date
+    )
 
 
 def invested_cash(x: pd.Series) -> float:
