@@ -78,6 +78,8 @@ def _name_node(category: str, percentage: float):
 
 
 def retrieve_tree_structure(portfolio_csv: pd.DataFrame) -> pd.DataFrame:
+    portfolio_csv = portfolio_csv[portfolio_csv["p_overall"] > 0].reset_index(drop=True)
+
     # Intitialize the tree tha tsummarizes the portfolio
     tree = Tree()
     tree.create_node("Portfolio", "portfolio")  # root node
